@@ -6,15 +6,15 @@ import { SearchSpinner } from "./SearchSpinner.js";
 import { SearchResult } from "./SearchResult.js";
 import { Footer } from "./Footer.js";
 import clipboard from "clipboardy";
+import { SearchPackagesResult } from "../types/types.js";
 
 export const Search = () => {
   const [query, setQuery] = useState<string>("");
-  const [searchResult, setSearchResult] = useState<
-    Awaited<ReturnType<typeof searchPackages>>
-  >([]);
+  const [searchResult, setSearchResult] = useState<SearchPackagesResult>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
+
 
   useInput((_, key) => {
     if (key.return && searchResult[selectedIndex]) {
@@ -92,10 +92,6 @@ export const Search = () => {
 
   return (
     <Box flexDirection="column">
-      <Box marginRight={1}>
-        <Text>Enter package name:</Text>
-      </Box>
-
       <Box borderStyle="single" borderColor="cyan" paddingX={1} width={50}>
         <TextInput
           placeholder="Search NuGet packages..."
