@@ -48,21 +48,13 @@ const SearchComponent = () => {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const onSubmit = async (searchQuery: string) => {
-    setLoading(true);
-    const data = await searchPackages(searchQuery);
-    setSearchResult(data);
-    setSelectedIndex(0);
-    setLoading(false);
-  };
-
   return (
     <Box flexDirection="column">
       <Box marginRight={1}>
         <Text>Enter package name:</Text>
       </Box>
 
-      <TextInput value={query} onChange={setQuery} onSubmit={onSubmit} />
+      <TextInput value={query} onChange={setQuery} />
       {loading ? (
         <SearchSpinner />
       ) : searchResult.length > 0 ? (
