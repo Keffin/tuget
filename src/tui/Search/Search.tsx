@@ -54,7 +54,7 @@ export const Search = () => {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const data = await searchPackages(query);
+        const data = await searchPackages(query, abortController.signal);
         setSearchResult(data);
         setSelectedIndex(0);
       } catch (e) {
