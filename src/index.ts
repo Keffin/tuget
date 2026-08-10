@@ -1,8 +1,6 @@
-async function main(): Promise<void> {
-  console.log("Hej");
-}
+import { startApp } from "./tui/App.js";
 
-main().catch((err) => {
+startApp().catch((err) => {
   console.error(err);
   process.exit(1);
 });
