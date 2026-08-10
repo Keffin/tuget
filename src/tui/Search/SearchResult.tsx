@@ -1,8 +1,8 @@
 import { Box, Text } from "ink";
-import { searchPackages } from "../../nuget-client/nuget-client.js";
+import { SearchPackagesResult } from "../types/types.js";
 
 interface Props {
-  results: Awaited<ReturnType<typeof searchPackages>>;
+  results: SearchPackagesResult;
   selectedIndex: number;
 }
 
