@@ -7,6 +7,7 @@ export const Footer = () => {
       <Text dimColor>type to search</Text>
       <Text dimColor>ESC to go back</Text>
       <Text dimColor>RETURN to copy to clipboard</Text>
+      <Text dimColor>TAB to select format</Text>
     </Box>
   );
 };

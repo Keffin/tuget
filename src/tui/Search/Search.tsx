@@ -7,6 +7,7 @@ import { SearchResult } from "./SearchResult.js";
 import { Footer } from "./Footer.js";
 import clipboard from "clipboardy";
 import { SearchPackagesResult } from "../types/types.js";
+import { FORMATS } from "./utils.js";
 
 export const Search = () => {
   const [query, setQuery] = useState<string>("");
@@ -14,13 +15,13 @@ export const Search = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
-
+  const [formatIndex, setFormatIndex] = useState<number>(0);
 
   useInput((_, key) => {
     if (key.return && searchResult[selectedIndex]) {
       const pkg = searchResult[selectedIndex];
       clipboard.writeSync(
-        `<PackageReference Include="${pkg.id}" Version="${pkg.version}" />`,
+        FORMATS[formatIndex]!.render(pkg.id ?? "", pkg.version ?? ""),
       );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -40,6 +41,10 @@ export const Search = () => {
       } else {
         setSelectedIndex((i) => Math.min(searchResult.length - 1, i + 1));
       }
+    }
+
+    if (key.tab) {
+      setFormatIndex((i) => (i + 1) % FORMATS.length);
     }
   });
 
@@ -100,8 +105,15 @@ export const Search = () => {
         />
       </Box>
 
-      {copied && <Text color="green">✓ Copied to clipboard</Text>}
+      {copied && (
+        <Text color="green">
+          ✓ Copied to clipboard as {FORMATS[formatIndex]!.label}
+        </Text>
+      )}
 
+      <Text dimColor>
+        Format: <Text color="cyan">{FORMATS[formatIndex]!.label}</Text>
+      </Text>
       <SearchContent />
 
       <Footer />
