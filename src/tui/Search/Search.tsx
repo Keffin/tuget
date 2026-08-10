@@ -4,7 +4,7 @@ import TextInput from "ink-text-input";
 import { searchPackages } from "../../nuget-client/nuget-client.js";
 import { SearchSpinner } from "./SearchSpinner.js";
 import { SearchResult } from "./SearchResult.js";
-import { Footer } from "../Footer.js";
+import { Footer } from "./Footer.js";
 
 export const Search = () => {
   const [query, setQuery] = useState<string>("");
@@ -15,10 +15,6 @@ export const Search = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   useInput((_, key) => {
-    if (key.escape) {
-      process.exit(0);
-    }
-
     if (key.upArrow) {
       if (selectedIndex === 0) {
         setSelectedIndex(searchResult.length - 1);
@@ -65,6 +61,24 @@ export const Search = () => {
     };
   }, [query]);
 
+  const SearchContent = () => {
+    if (loading) {
+      return <SearchSpinner />;
+    }
+
+    if (searchResult.length > 0) {
+      return (
+        <SearchResult results={searchResult} selectedIndex={selectedIndex} />
+      );
+    }
+
+    if (query) {
+      return <Text dimColor>No results for "{query}"</Text>;
+    }
+
+    return null;
+  };
+
   return (
     <Box flexDirection="column">
       <Box marginRight={1}>
@@ -78,11 +92,8 @@ export const Search = () => {
           onChange={setQuery}
         />
       </Box>
-      {loading ? (
-        <SearchSpinner />
-      ) : searchResult.length > 0 ? (
-        <SearchResult results={searchResult} selectedIndex={selectedIndex} />
-      ) : null}
+
+      <SearchContent />
 
       <Footer />
     </Box>
