@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import { searchPackages } from "../nuget-client/nuget-client.js";
+import { searchPackages } from "../../nuget-client/nuget-client.js";
 
 interface Props {
   results: Awaited<ReturnType<typeof searchPackages>>;
@@ -9,7 +9,7 @@ interface Props {
 export const SearchResult = ({ results, selectedIndex }: Props) => {
   const pkg = results[selectedIndex];
 
-  const listWidth = Math.max(...results.map(x => x.id?.length ?? 0)) + 4; // +4 for "> " and padding
+  const listWidth = Math.max(...results.map((x) => x.id?.length ?? 0)) + 4; // +4 for "> " and padding
   const rightWidth = (process.stdout.columns ?? 80) - listWidth - 4; // 4 for two borders
 
   return (
@@ -33,6 +33,17 @@ export const SearchResult = ({ results, selectedIndex }: Props) => {
           <>
             <Text bold>{pkg.id}</Text>
             <Text dimColor>{pkg.version}</Text>
+            {pkg.deprecation && (
+              <Text color="yellow">
+                Deprecated:{" "}
+                {pkg.deprecation.message ?? pkg.deprecation.reasons?.join(", ")}
+              </Text>
+            )}
+            {(pkg.vulnerabilities?.length ?? 0) > 0 && (
+              <Text color="red">
+                ⚠ {pkg.vulnerabilities!.length} vulnerabilit{pkg.vulnerabilities!.length === 1 ? "y" : "ies"}
+              </Text>
+            )}
             <Text>{"\n"}</Text>
             <Text>{pkg.description}</Text>
             <Text>{"\n"}</Text>

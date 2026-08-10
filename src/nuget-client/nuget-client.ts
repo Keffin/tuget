@@ -2,10 +2,11 @@ import { NuGetSearchData, NuGetSearchResponseSchema } from "./schemas.js";
 
 export async function searchPackages(
   query: string,
+  signal?: AbortSignal,
 ): Promise<NuGetSearchData[]> {
   const nugetSearchQuery = `https://azuresearch-usnc.nuget.org/query?q=${query}&prerelease=false&take=20`;
 
-  const response = await fetch(nugetSearchQuery);
+  const response = await fetch(nugetSearchQuery, { signal });
 
   const result = await response.json();
 

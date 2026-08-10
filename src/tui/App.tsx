@@ -1,69 +1,40 @@
-import { useEffect, useState } from "react";
-import { Box, render, Text, useInput } from "ink";
-import { searchPackages } from "../nuget-client/nuget-client.js";
-import TextInput from "ink-text-input";
-import { SearchSpinner } from "./SearchSpinner.js";
-import { SearchResult } from "./SearchResult.js";
+import {  useState } from "react";
+import {  render, Text, useInput } from "ink";
+import { SplashScreen } from "./SplashScreen.js";
+import { Search } from "./Search/Search.js";
 
-const SearchComponent = () => {
-  const [query, setQuery] = useState<string>("");
-  const [searchResult, setSearchResult] = useState<
-    Awaited<ReturnType<typeof searchPackages>>
-  >([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+type View = "splash" | "search";
 
-  useInput((_, key) => {
-    if (key.upArrow) {
-      if (selectedIndex === 0) {
-        setSelectedIndex(searchResult.length - 1);
+const App = () => {
+  const [view, setView] = useState<View>("splash");
+
+  useInput((input, key) => {
+    if (key.escape) {
+      if (view === "search") {
+        setView("splash");
       } else {
-        setSelectedIndex((i) => Math.max(0, i - 1));
+        process.exit(0);
       }
     }
 
-    if (key.downArrow) {
-      if (selectedIndex === searchResult.length - 1) {
-        setSelectedIndex(0);
-      } else {
-        setSelectedIndex((i) => Math.min(searchResult.length - 1, i + 1));
+    if (view === "splash") {
+      if (input === "1") {
+        setView("search");
+      }
+      if (input === "q") {
+        process.exit(0);
       }
     }
   });
 
-  useEffect(() => {
-    if (!query) {
-      setSearchResult([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      const data = await searchPackages(query);
-      setSearchResult(data);
-      setSelectedIndex(0);
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  return (
-    <Box flexDirection="column">
-      <Box marginRight={1}>
-        <Text>Enter package name:</Text>
-      </Box>
-
-      <TextInput value={query} onChange={setQuery} />
-      {loading ? (
-        <SearchSpinner />
-      ) : searchResult.length > 0 ? (
-        <SearchResult results={searchResult} selectedIndex={selectedIndex} />
-      ) : null}
-    </Box>
-  );
+  if (view === "splash") {
+    return <SplashScreen />;
+  }
+  if (view === "search") {
+    return <Search />;
+  }
 };
 
 export const startApp = async (): Promise<void> => {
-  render(<SearchComponent />);
+  render(<App />);
 };
