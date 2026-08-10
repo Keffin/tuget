@@ -20,6 +20,9 @@ const Counter = () => {
 };
 
 export async function startApp(): Promise<void> {
-  searchPackages("json");
+  const result = await searchPackages("json");
+  for (const r of result) {
+    console.log(r.authors);
+  }
   render(<Counter />);
 }
