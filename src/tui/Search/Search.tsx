@@ -8,45 +8,14 @@ import { Footer } from "./Footer.js";
 import clipboard from "clipboardy";
 import { SearchPackagesResult } from "../types/types.js";
 import { FORMATS } from "./utils.js";
+import { useSearchNavigation } from "./hooks/useSearchNavigation.js";
 
 export const Search = () => {
   const [query, setQuery] = useState<string>("");
   const [searchResult, setSearchResult] = useState<SearchPackagesResult>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [copied, setCopied] = useState<boolean>(false);
-  const [formatIndex, setFormatIndex] = useState<number>(0);
 
-  useInput((_, key) => {
-    if (key.return && searchResult[selectedIndex]) {
-      const pkg = searchResult[selectedIndex];
-      clipboard.writeSync(
-        FORMATS[formatIndex]!.render(pkg.id ?? "", pkg.version ?? ""),
-      );
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-
-    if (key.upArrow) {
-      if (selectedIndex === 0) {
-        setSelectedIndex(searchResult.length - 1);
-      } else {
-        setSelectedIndex((i) => Math.max(0, i - 1));
-      }
-    }
-
-    if (key.downArrow) {
-      if (selectedIndex === searchResult.length - 1) {
-        setSelectedIndex(0);
-      } else {
-        setSelectedIndex((i) => Math.min(searchResult.length - 1, i + 1));
-      }
-    }
-
-    if (key.tab) {
-      setFormatIndex((i) => (i + 1) % FORMATS.length);
-    }
-  });
+  const { selectedIndex, copied, currentFormat } = useSearchNavigation(searchResult);
 
   useEffect(() => {
     if (!query) {
@@ -61,7 +30,7 @@ export const Search = () => {
       try {
         const data = await searchPackages(query, abortController.signal);
         setSearchResult(data);
-        setSelectedIndex(0);
+        //setSelectedIndex(0);
       } catch (e) {
         if (e instanceof Error && e.name !== "AbortError") {
           throw e;
@@ -107,12 +76,12 @@ export const Search = () => {
 
       {copied && (
         <Text color="green">
-          ✓ Copied to clipboard as {FORMATS[formatIndex]!.label}
+          ✓ Copied to clipboard as {currentFormat.label}
         </Text>
       )}
 
       <Text dimColor>
-        Format: <Text color="cyan">{FORMATS[formatIndex]!.label}</Text>
+        Format: <Text color="cyan">{currentFormat.label}</Text>
       </Text>
       <SearchContent />
 
