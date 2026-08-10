@@ -5,6 +5,7 @@ import { searchPackages } from "../../nuget-client/nuget-client.js";
 import { SearchSpinner } from "./SearchSpinner.js";
 import { SearchResult } from "./SearchResult.js";
 import { Footer } from "./Footer.js";
+import clipboard from "clipboardy";
 
 export const Search = () => {
   const [query, setQuery] = useState<string>("");
@@ -13,8 +14,18 @@ export const Search = () => {
   >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [copied, setCopied] = useState<boolean>(false);
 
   useInput((_, key) => {
+    if (key.return && searchResult[selectedIndex]) {
+      const pkg = searchResult[selectedIndex];
+      clipboard.writeSync(
+        `<PackageReference Include="${pkg.id}" Version="${pkg.version}" />`,
+      );
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+
     if (key.upArrow) {
       if (selectedIndex === 0) {
         setSelectedIndex(searchResult.length - 1);
@@ -92,6 +103,8 @@ export const Search = () => {
           onChange={setQuery}
         />
       </Box>
+
+      {copied && <Text color="green">✓ Copied to clipboard</Text>}
 
       <SearchContent />
 
