@@ -1,28 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { render, Text } from "ink";
+import { Box, render, Text, useInput } from "ink";
 import { searchPackages } from "../nuget-client/nuget-client.js";
+import TextInput from "ink-text-input";
 
-const Counter = () => {
-  const [counter, setCounter] = useState(0);
+const SearchComponent = () => {
+  const [query, setQuery] = useState<string>("");
+  const [searchResult, setSearchResult] = useState<
+    Awaited<ReturnType<typeof searchPackages>>
+  >([]);
 
-  useEffect(() => {
+  const onSubmit = async (searchQuery: string) => {
+    const data = await searchPackages(searchQuery);
+    setSearchResult(data);
+  };
 
-    const timer = setInterval(() => {
-      setCounter(previousCounter => previousCounter + 1);
-    }, 1000);
+  return (
+    <Box flexDirection="column">
+      <Box marginRight={1}>
+        <Text>Enter package name:</Text>
+      </Box>
 
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
-
-  return <Text color="green">{counter} tests passed</Text>;
+      <TextInput value={query} onChange={setQuery} onSubmit={onSubmit} />
+      {searchResult.map((pkg) => (
+        <Text key={pkg.id}>
+          {pkg.id} - {pkg.version}{" "}
+        </Text>
+      ))}
+    </Box>
+  );
 };
 
-export async function startApp(): Promise<void> {
-  const result = await searchPackages("json");
-  for (const r of result) {
-    console.log(r.authors);
-  }
-  render(<Counter />);
+export const startApp = async (): Promise<void> => {
+  render(<SearchComponent />);
 }
