@@ -15,7 +15,8 @@ export const Search = () => {
   const [searchResult, setSearchResult] = useState<SearchPackagesResult>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { selectedIndex, copied, currentFormat } = useSearchNavigation(searchResult);
+  const { selectedIndex, selectedVersionIndex, mode, copied, currentFormat } =
+    useSearchNavigation(searchResult);
 
   useEffect(() => {
     if (!query) {
@@ -30,7 +31,6 @@ export const Search = () => {
       try {
         const data = await searchPackages(query, abortController.signal);
         setSearchResult(data);
-        //setSelectedIndex(0);
       } catch (e) {
         if (e instanceof Error && e.name !== "AbortError") {
           throw e;
@@ -53,7 +53,12 @@ export const Search = () => {
 
     if (searchResult.length > 0) {
       return (
-        <SearchResult results={searchResult} selectedIndex={selectedIndex} />
+        <SearchResult
+          results={searchResult}
+          selectedIndex={selectedIndex}
+          selectedVersionIndex={selectedVersionIndex}
+          mode={mode}
+        />
       );
     }
 
@@ -85,7 +90,7 @@ export const Search = () => {
       </Text>
       <SearchContent />
 
-      <Footer />
+      <Footer mode={mode}/>
     </Box>
   );
 };
