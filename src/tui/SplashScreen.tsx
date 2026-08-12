@@ -35,7 +35,7 @@ export const SplashScreen = ({ project }: Props) => (
             {" "}
             2{" "}
           </Text>
-          { `  ${project.filePath.split("/").pop()}`} - {project.packages.length}{" "}
+          {`  ${project.filePath.split("/").pop()}`} - {project.packages.length}{" "}
           packages
         </Text>
       )}

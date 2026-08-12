@@ -3,6 +3,7 @@ import { render, Text, useInput } from "ink";
 import { SplashScreen } from "./SplashScreen.js";
 import { Search } from "./Search/Search.js";
 import { CsprojProject, loadProject } from "../projects/project-finder.js";
+import { ProjectPackages } from "./Projects/ProjectPackages.js";
 
 type View = "splash" | "search" | "project";
 
@@ -16,7 +17,7 @@ const App = () => {
 
   useInput((input, key) => {
     if (key.escape) {
-      if (view === "search") {
+      if (view === "search" || view === "project") {
         setView("splash");
       } else {
         process.exit(0);
@@ -42,9 +43,8 @@ const App = () => {
   if (view === "search") {
     return <Search />;
   }
-  if (view === "project") {
-    // TODO: implement this
-    process.exit(0);
+  if (view === "project" && project) {
+    return <ProjectPackages project={project} />;
   }
 };
 
