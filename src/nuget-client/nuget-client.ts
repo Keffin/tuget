@@ -21,11 +21,10 @@ export async function searchPackages(
 
 export async function getPackageLatestState(
   id: string,
-  signal?: AbortSignal,
 ): Promise<NuGetSearchData | null> {
   const url = `https://azuresearch-usnc.nuget.org/query?q=packageid:${id}&prerelease=false&take=1`;
 
-  const response = await fetch(url, { signal });
+  const response = await fetch(url);
 
   const result = await response.json();
 
