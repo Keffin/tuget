@@ -19,7 +19,8 @@ export const ProjectPackages = ({ project }: Props) => {
     }
   })
 
-  const listWidth = Math.max(...project.packages.map((p) => p.id.length)) + PADDING;
+  // Need a bit wider defaults for this view
+  const listWidth = Math.max(30, Math.max(...project.packages.map((p) => p.id.length)) + 6);
   const rightWidth = (process.stdout.columns ?? 80) - listWidth - PADDING;
 
 
