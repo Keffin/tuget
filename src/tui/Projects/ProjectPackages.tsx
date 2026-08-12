@@ -8,6 +8,9 @@ import { runDotnet } from "./dotnet-runner.js";
 import { dirname } from "node:path";
 import { CommandState } from "./CommandState.js";
 import { Footer } from "./Footer.js";
+import { addPackageCommand, removePackageCommand } from "./utils.js";
+import { usePackageActions } from "./hooks/usePackageActions.js";
+import { usePackageLatest } from "./hooks/usePackageLatest.js";
 
 interface Props {
   project: CsprojProject;
@@ -19,22 +22,8 @@ export const ProjectPackages = ({ project, onReload }: Props) => {
   const pkg = project.packages[selectedIndex];
   const projectDir = dirname(project.filePath);
 
-  const [latestData, setLatestData] = useState<NuGetSearchData | null>(null);
-  const [fetching, setFetching] = useState<boolean>(false);
-
-  const [status, setStatus] = useState<CommandStatus>({ type: "idle" });
-
-  useEffect(() => {
-    if (!pkg) {
-      return;
-    }
-
-    setLatestData(null);
-    setFetching(true);
-    getPackageLatestState(pkg.id)
-      .then(setLatestData)
-      .finally(() => setFetching(false));
-  }, [selectedIndex]);
+  const { latestData, fetching } = usePackageLatest(pkg?.id);
+  const { status, executeCommand } = usePackageActions(projectDir, onReload);
 
   useInput((input, key) => {
     if (key.upArrow) {
@@ -46,32 +35,18 @@ export const ProjectPackages = ({ project, onReload }: Props) => {
 
     if (
       input === "u" &&
-      latestData &&
       pkg &&
+      latestData &&
       pkg.version !== latestData.version
     ) {
-      const command = `add package ${pkg.id} --version ${latestData.version}`;
-      setStatus({ type: "running", command });
-      runDotnet(command, projectDir)
-        .then(async () => {
-          await onReload();
-          setStatus({
-            type: "done",
-            message: `Updated ${pkg.id} to ${latestData.version}`,
-          });
-        })
-        .catch((e) => setStatus({ type: "error", message: e.message }));
+      executeCommand(
+        addPackageCommand({ id: pkg.id, version: latestData.version }),
+        `Updated ${pkg.id} to ${latestData.version}`,
+      );
     }
 
     if (input === "r" && pkg) {
-      const command = `remove package ${pkg.id}`;
-      setStatus({ type: "running", command });
-      runDotnet(command, projectDir)
-        .then(async () => {
-          await onReload();
-          setStatus({ type: "done", message: `Removed ${pkg.id}` });
-        })
-        .catch((e) => setStatus({ type: "error", message: e.message }));
+      executeCommand(removePackageCommand({ id: pkg.id }), `Removed ${pkg.id}`);
     }
   });
 
