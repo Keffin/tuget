@@ -1,4 +1,5 @@
 import { readdir, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { join } from "node:path";
 
 export type CsprojPackage = {
@@ -30,7 +31,12 @@ export async function findCsproj(dir: string): Promise<string | null> {
   return findCsproj(parent);
 }
 
-export async function loadProject(dir = process.cwd()): Promise<CsprojProject | null> {
+// dir = the env only used for testing locally
+export async function loadProject(
+  dir = process.env.TEST_PROJ_DIR
+    ? resolve(process.env.TEST_PROJ_DIR)
+    : process.cwd(),
+): Promise<CsprojProject | null> {
   const fp = await findCsproj(dir);
 
   if (!fp) {
