@@ -11,6 +11,11 @@ const App = () => {
   const [view, setView] = useState<View>("splash");
   const [project, setProject] = useState<CsprojProject | null>(null);
 
+  const reloadProject = async () => {
+    const updated = await loadProject();
+    setProject(updated);
+  }
+
   useEffect(() => {
     loadProject().then(setProject);
   }, []);
@@ -44,7 +49,7 @@ const App = () => {
     return <Search />;
   }
   if (view === "project" && project) {
-    return <ProjectPackages project={project} />;
+    return <ProjectPackages project={project} onReload={reloadProject} />;
   }
 };
 

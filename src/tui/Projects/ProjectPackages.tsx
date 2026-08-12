@@ -1,40 +1,77 @@
 import { useEffect, useState } from "react";
 import { CsprojProject } from "../../projects/project-finder.js";
 import { Box, Text, useInput } from "ink";
-import { PADDING } from "../types/types.js";
+import { CommandStatus, PADDING } from "../types/types.js";
 import { NuGetSearchData } from "../../nuget-client/schemas.js";
 import { getPackageLatestState } from "../../nuget-client/nuget-client.js";
+import { runDotnet } from "./dotnet-runner.js";
+import { dirname } from "node:path";
+import { CommandState } from "./CommandState.js";
+import { Footer } from "./Footer.js";
 
 interface Props {
   project: CsprojProject;
+  onReload: () => Promise<void>;
 }
-export const ProjectPackages = ({ project }: Props) => {
+
+export const ProjectPackages = ({ project, onReload }: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const pkg = project.packages[selectedIndex];
+  const projectDir = dirname(project.filePath);
 
   const [latestData, setLatestData] = useState<NuGetSearchData | null>(null);
   const [fetching, setFetching] = useState<boolean>(false);
+
+  const [status, setStatus] = useState<CommandStatus>({ type: "idle" });
 
   useEffect(() => {
     if (!pkg) {
       return;
     }
 
-    const controller = new AbortController();
+    setLatestData(null);
     setFetching(true);
-
-    getPackageLatestState(pkg.id, controller.signal)
+    getPackageLatestState(pkg.id)
       .then(setLatestData)
       .finally(() => setFetching(false));
-    return () => controller.abort();
   }, [selectedIndex]);
 
-  useInput((_, key) => {
+  useInput((input, key) => {
     if (key.upArrow) {
       setSelectedIndex((i) => (i === 0 ? project.packages.length - 1 : i - 1));
     }
     if (key.downArrow) {
       setSelectedIndex((i) => (i === project.packages.length - 1 ? 0 : i + 1));
+    }
+
+    if (
+      input === "u" &&
+      latestData &&
+      pkg &&
+      pkg.version !== latestData.version
+    ) {
+      const command = `add package ${pkg.id} --version ${latestData.version}`;
+      setStatus({ type: "running", command });
+      runDotnet(command, projectDir)
+        .then(async () => {
+          await onReload();
+          setStatus({
+            type: "done",
+            message: `Updated ${pkg.id} to ${latestData.version}`,
+          });
+        })
+        .catch((e) => setStatus({ type: "error", message: e.message }));
+    }
+
+    if (input === "r" && pkg) {
+      const command = `remove package ${pkg.id}`;
+      setStatus({ type: "running", command });
+      runDotnet(command, projectDir)
+        .then(async () => {
+          await onReload();
+          setStatus({ type: "done", message: `Removed ${pkg.id}` });
+        })
+        .catch((e) => setStatus({ type: "error", message: e.message }));
     }
   });
 
@@ -86,10 +123,10 @@ export const ProjectPackages = ({ project }: Props) => {
           )}
         </Box>
       </Box>
-      <Box marginTop={1} gap={3}>
-        <Text dimColor>↑↓ navigate</Text>
-        <Text dimColor>ESC to go back</Text>
-      </Box>
+
+      <CommandState status={status} />
+
+      <Footer isOutdated={!fetching && latestData?.version !== pkg?.version} />
     </Box>
   );
 };
