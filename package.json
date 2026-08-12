@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:sample": "TEST_PROJ_DIR=../sample-app tsx src/index.ts",
     "test": "vitest"
   },
   "keywords": [],
