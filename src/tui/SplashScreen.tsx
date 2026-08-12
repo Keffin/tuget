@@ -1,6 +1,11 @@
 import { Box, Text } from "ink";
+import { CsprojProject } from "../projects/project-finder.js";
 
-export const SplashScreen = () => (
+interface Props {
+  project: CsprojProject | null;
+}
+
+export const SplashScreen = ({ project }: Props) => (
   <Box
     flexDirection="column"
     height={process.stdout.rows}
@@ -24,6 +29,16 @@ export const SplashScreen = () => (
         </Text>
         {"  Search packages"}
       </Text>
+      {project && (
+        <Text>
+          <Text color="cyan" bold>
+            {" "}
+            2{" "}
+          </Text>
+          { `  ${project.filePath.split("/").pop()}`} - {project.packages.length}{" "}
+          packages
+        </Text>
+      )}
       <Text>
         <Text color="cyan" bold>
           {" "}
