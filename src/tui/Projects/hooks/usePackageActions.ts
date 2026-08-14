@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CommandStatus } from "../../types/types.js";
 import { runDotnet } from "../dotnet-runner.js";
+import { addPackageCommand } from "../utils.js";
 
 export const usePackageActions = (
   projectDir: string,
@@ -18,5 +19,27 @@ export const usePackageActions = (
       .catch((e) => setStatus({ type: "error", message: e.message }));
   };
 
-  return { status, executeCommand };
+  const executeBulkUpdate = async (
+    updates: Array<{ id: string; version: string }>,
+  ) => {
+    for (let i = 0; i < updates.length; i++) {
+      const pkg = updates[i]!;
+      setStatus({
+        type: "running",
+        command: `add package ${pkg.id} --version ${pkg.version} (${i + 1}/${updates.length})`,
+      });
+      await runDotnet(
+        addPackageCommand({ id: pkg.id, version: pkg.version }),
+        projectDir,
+      );
+    }
+
+    await onReload();
+    setStatus({
+      type: "done",
+      message: `Updated ${updates.length} package${updates.length === 1 ? "" : "s"}`,
+    });
+  };
+
+  return { status, executeCommand, executeBulkUpdate };
 };
