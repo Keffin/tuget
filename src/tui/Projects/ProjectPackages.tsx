@@ -13,9 +13,10 @@ import { ProjectPackagesList } from "./ProjectPackagesList.js";
 interface Props {
   project: CsprojProject;
   onReload: () => Promise<void>;
+  onOpenInstallSearch: (cb: (id: string, version: string) => void) => void;
 }
 
-export const ProjectPackages = ({ project, onReload }: Props) => {
+export const ProjectPackages = ({ project, onReload, onOpenInstallSearch }: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const pkg = project.packages[selectedIndex];
   const projectDir = dirname(project.filePath);
@@ -63,6 +64,15 @@ export const ProjectPackages = ({ project, onReload }: Props) => {
 
     if (input === "r" && pkg) {
       executeCommand(removePackageCommand({ id: pkg.id }), `Removed ${pkg.id}`);
+    }
+
+    if (input === "a") {
+      onOpenInstallSearch((id, version) => {
+        executeCommand(
+          addPackageCommand({ id, version }),
+          `Added ${id} ${version}`,
+        );
+      });
     }
   });
 

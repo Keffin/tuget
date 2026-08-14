@@ -11,10 +11,18 @@ const App = () => {
   const [view, setView] = useState<View>("splash");
   const [project, setProject] = useState<CsprojProject | null>(null);
 
+  const [installCallback, setInstallCallback] = useState<{
+    fn: (id: string, version: string) => void;
+  } | null>(null);
+
+  const openInstallSearch = (cb: (id: string, version: string) => void) => {
+    setInstallCallback({ fn: cb });
+    setView("search");
+  };
   const reloadProject = async () => {
     const updated = await loadProject();
     setProject(updated);
-  }
+  };
 
   useEffect(() => {
     loadProject().then(setProject);
@@ -22,7 +30,10 @@ const App = () => {
 
   useInput((input, key) => {
     if (key.escape) {
-      if (view === "search" || view === "project") {
+      if (view === "search") {
+        setInstallCallback(null);
+        setView(installCallback ? "project" : "splash");
+      } else if (view === "project") {
         setView("splash");
       } else {
         process.exit(0);
@@ -46,10 +57,28 @@ const App = () => {
     return <SplashScreen project={project} />;
   }
   if (view === "search") {
-    return <Search />;
+    return (
+      <Search
+        onInstall={
+          installCallback
+            ? (id, version) => {
+                installCallback.fn(id, version);
+                setInstallCallback(null);
+                setView("project");
+              }
+            : undefined
+        }
+      />
+    );
   }
   if (view === "project" && project) {
-    return <ProjectPackages project={project} onReload={reloadProject} />;
+    return (
+      <ProjectPackages
+        project={project}
+        onReload={reloadProject}
+        onOpenInstallSearch={openInstallSearch}
+      />
+    );
   }
 };
 
