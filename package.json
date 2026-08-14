@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "dev:sample": "TEST_PROJ_DIR=../sample-app tsx src/index.ts",
+    "dev:sample-props": "TEST_PROJ_DIR=../sample-app-props tsx src/index.ts",
     "test": "vitest"
   },
   "keywords": [],

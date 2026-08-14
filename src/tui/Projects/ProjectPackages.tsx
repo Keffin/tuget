@@ -79,7 +79,7 @@ export const ProjectPackages = ({ project, onReload }: Props) => {
             <>
               <Text bold>{pkg.id}</Text>
               <Text>
-                Installed: <Text color="cyan">{pkg.version}</Text>
+                Installed: <Text color="cyan">{pkg.version ?? "—"}</Text>
               </Text>
               {fetching && <Text dimColor>Fetching latest...</Text>}
               {!fetching && latestData && (
