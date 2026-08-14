@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CsprojProject } from "../../projects/project-finder.js";
 import { Box, Text, useInput } from "ink";
-import { CommandStatus, PADDING } from "../types/types.js";
-import { NuGetSearchData } from "../../nuget-client/schemas.js";
-import { getPackageLatestState } from "../../nuget-client/nuget-client.js";
-import { runDotnet } from "./dotnet-runner.js";
+import { PADDING } from "../types/types.js";
 import { dirname } from "node:path";
 import { CommandState } from "./CommandState.js";
 import { Footer } from "./Footer.js";
 import { addPackageCommand, removePackageCommand } from "./utils.js";
 import { usePackageActions } from "./hooks/usePackageActions.js";
-import { usePackageLatest } from "./hooks/usePackageLatest.js";
 import { useAllPackageLatest } from "./hooks/useAllPackageLatest.js";
+import { ProjectPackagesList } from "./ProjectPackagesList.js";
 
 interface Props {
   project: CsprojProject;
@@ -23,8 +20,9 @@ export const ProjectPackages = ({ project, onReload }: Props) => {
   const pkg = project.packages[selectedIndex];
   const projectDir = dirname(project.filePath);
 
-  const { latestData, fetching } = usePackageLatest(pkg?.id);
-  const { latestMap, allFetching } = useAllPackageLatest(project.packages);
+  const { latestMap, fetching } = useAllPackageLatest(project.packages);
+  const latestData = latestMap.get(pkg?.id ?? "") ?? null;
+
   const { status, executeCommand, executeBulkUpdate } = usePackageActions(
     projectDir,
     onReload,
@@ -84,26 +82,11 @@ export const ProjectPackages = ({ project, onReload }: Props) => {
       <Text dimColor>{project.filePath}</Text>
       <Box flexDirection="row">
         <Box flexDirection="column" width={listWidth} borderStyle="single">
-          {project.packages.map((p, i) => {
-            const latest = latestMap.get(p.id);
-            const isOutdated = latest?.version && latest.version !== p.version;
-            const isVulnerable = (latest?.vulnerabilities?.length ?? 0) > 0;
-            const isDeprecated = !!latest?.deprecation;
-
-            return (
-              <Text key={p.id} color={i === selectedIndex ? "cyan" : undefined}>
-                {i === selectedIndex ? "> " : "  "}
-                {p.id}
-                {isVulnerable && <Text color="red"> ⚠</Text>}
-                {isDeprecated && !isVulnerable && (
-                  <Text color="yellow"> ⚑</Text>
-                )}
-                {isOutdated && !isVulnerable && !isDeprecated && (
-                  <Text color="yellow"> ↑</Text>
-                )}
-              </Text>
-            );
-          })}
+          <ProjectPackagesList
+            project={project}
+            latestMap={latestMap}
+            selectedIndex={selectedIndex}
+          />
         </Box>
         <Box
           flexDirection="column"
