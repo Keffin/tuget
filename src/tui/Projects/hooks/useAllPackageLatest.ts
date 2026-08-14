@@ -7,14 +7,14 @@ export const useAllPackageLatest = (packages: CsprojPackage[]) => {
   const [latestMap, setLatestMap] = useState<Map<string, NuGetSearchData>>(
     new Map(),
   );
-  const [allFetching, setAllFetching] = useState<boolean>(false);
+  const [fetching, setFetching] = useState<boolean>(false);
 
   useEffect(() => {
     if (packages.length === 0) {
       return;
     }
 
-    setAllFetching(true);
+    setFetching(true);
     Promise.all(packages.map((p) => getPackageLatestState(p.id)))
       .then((res) => {
         const map = new Map<string, NuGetSearchData>();
@@ -26,8 +26,8 @@ export const useAllPackageLatest = (packages: CsprojPackage[]) => {
         });
         setLatestMap(map);
       })
-      .finally(() => setAllFetching(false));
+      .finally(() => setFetching(false));
   }, [packages]);
 
-  return { latestMap, allFetching };
+  return { latestMap, fetching };
 };
