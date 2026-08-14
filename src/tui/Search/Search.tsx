@@ -10,13 +10,17 @@ import { SearchPackagesResult } from "../types/types.js";
 import { FORMATS } from "./utils.js";
 import { useSearchNavigation } from "./hooks/useSearchNavigation.js";
 
-export const Search = () => {
+interface Props {
+  onInstall?: (id: string, version: string) => void;
+}
+
+export const Search = ({ onInstall }: Props) => {
   const [query, setQuery] = useState<string>("");
   const [searchResult, setSearchResult] = useState<SearchPackagesResult>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const { selectedIndex, selectedVersionIndex, mode, copied, currentFormat } =
-    useSearchNavigation(searchResult);
+    useSearchNavigation(searchResult, onInstall);
 
   useEffect(() => {
     if (!query) {
@@ -79,18 +83,19 @@ export const Search = () => {
         />
       </Box>
 
-      {copied && (
+      {!onInstall && copied && (
         <Text color="green">
           ✓ Copied to clipboard as {currentFormat.label}
         </Text>
       )}
-
-      <Text dimColor>
-        Format: <Text color="cyan">{currentFormat.label}</Text>
-      </Text>
+      {!onInstall && (
+        <Text dimColor>
+          Format: <Text color="cyan">{currentFormat.label}</Text>
+        </Text>
+      )}
       <SearchContent />
 
-      <Footer mode={mode}/>
+      <Footer mode={mode} installMode={!!onInstall} />
     </Box>
   );
 };

@@ -4,7 +4,10 @@ import { useInput } from "ink";
 import { FORMATS } from "../utils.js";
 import clipboard from "clipboardy";
 
-export const useSearchNavigation = (results: SearchPackagesResult) => {
+export const useSearchNavigation = (
+  results: SearchPackagesResult,
+  onInstall?: (id: string, version: string) => void,
+) => {
   // navigation
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [mode, setMode] = useState<Mode>("packages");
@@ -20,7 +23,6 @@ export const useSearchNavigation = (results: SearchPackagesResult) => {
   const [copied, setCopied] = useState<boolean>(false);
   const [formatIndex, setFormatIndex] = useState<number>(0);
 
-
   useEffect(() => {
     setSelectedIndex(0);
     setMode("packages");
@@ -33,12 +35,15 @@ export const useSearchNavigation = (results: SearchPackagesResult) => {
           ? (reversedVersions[selectedVersionIndex]?.version ?? pkg.version)
           : pkg.version;
 
-      clipboard.writeSync(
-        FORMATS[formatIndex]!.render(pkg.id ?? "", version ?? ""),
-      );
-
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (onInstall) {
+        onInstall(pkg.id ?? "", version ?? "");
+      } else {
+        clipboard.writeSync(
+          FORMATS[formatIndex]!.render(pkg.id ?? "", version ?? ""),
+        );
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     }
 
     if (key.rightArrow && pkg && mode === "packages") {
@@ -60,7 +65,7 @@ export const useSearchNavigation = (results: SearchPackagesResult) => {
       navigateDown();
     }
 
-    if (key.tab) {
+    if (key.tab && !onInstall) {
       setFormatIndex((i) => (i + 1) % FORMATS.length);
     }
   });
