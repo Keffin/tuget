@@ -12,6 +12,16 @@ export type CsprojProject = {
   packages: CsprojPackage[];
 };
 
+export type SlnxSolution = {
+  filePath: string;
+  projects: CsprojProject[];
+};
+
+export type AppData =
+  | { kind: "solution"; solution: SlnxSolution }
+  | { kind: "project"; project: CsprojProject }
+  | null;
+
 export async function findCsproj(dir: string): Promise<string | null> {
   const entries = await readdir(dir);
   const found = entries.find((f) => f.endsWith(".csproj"));
@@ -44,7 +54,6 @@ export async function findDirectoryPackageProps(
   return findDirectoryPackageProps(parent);
 }
 
-// dir = the env only used for testing locally
 export async function loadProject(
   dir = process.env.TEST_PROJ_DIR
     ? resolve(process.env.TEST_PROJ_DIR)
@@ -104,4 +113,80 @@ export function parsePackageReferences(xml: string): CsprojPackage[] {
     });
   }
   return packages;
+}
+
+export async function findSlnx(dir: string): Promise<string | null> {
+  const entries = await readdir(dir);
+  const found = entries.find((f) => f.endsWith(".slnx"));
+  if (found) return join(dir, found);
+  const parent = join(dir, "..");
+  if (parent === dir) return null;
+  return findSlnx(parent);
+}
+
+export function parseSlnxProjectPaths(xml: string): string[] {
+  const regex = /<Project\s+Path="([^"]+)"/g;
+  const paths: string[] = [];
+  let match;
+  while ((match = regex.exec(xml)) !== null) {
+    paths.push(match[1]!);
+  }
+  return paths;
+}
+
+async function loadProjectFromPath(csprojPath: string): Promise<CsprojProject> {
+  const csprojDir = dirname(csprojPath);
+  const xml = await readFile(csprojPath, "utf-8");
+  const packages = parsePackageReferences(xml);
+
+  const propsPath = await findDirectoryPackageProps(csprojDir);
+  if (!propsPath) return { filePath: csprojPath, packages };
+
+  const propsXml = await readFile(propsPath, "utf-8");
+  const versions = parsePackageVersions(propsXml);
+  return {
+    filePath: csprojPath,
+    packages: packages.map((p) => ({
+      ...p,
+      version: p.version ?? versions.get(p.id),
+    })),
+  };
+}
+
+export async function loadSolution(
+  dir = process.env.TEST_PROJ_DIR
+    ? resolve(process.env.TEST_PROJ_DIR)
+    : process.cwd(),
+): Promise<SlnxSolution | null> {
+  const slnxPath = await findSlnx(dir);
+  if (!slnxPath) return null;
+
+  const xml = await readFile(slnxPath, "utf-8");
+  const slnxDir = dirname(slnxPath);
+  const relativePaths = parseSlnxProjectPaths(xml);
+
+  const results = await Promise.all(
+    relativePaths
+      .filter((p) => p.endsWith(".csproj"))
+      .map((rel) =>
+        loadProjectFromPath(resolve(slnxDir, rel)).catch(() => null),
+      ),
+  );
+
+  return {
+    filePath: slnxPath,
+    projects: results.filter((p): p is CsprojProject => p !== null),
+  };
+}
+
+export async function loadAppData(
+  dir = process.env.TEST_PROJ_DIR
+    ? resolve(process.env.TEST_PROJ_DIR)
+    : process.cwd(),
+): Promise<AppData> {
+  const solution = await loadSolution(dir);
+  if (solution) return { kind: "solution", solution };
+  const project = await loadProject(dir);
+  if (project) return { kind: "project", project };
+  return null;
 }
