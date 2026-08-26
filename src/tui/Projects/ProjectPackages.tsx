@@ -6,6 +6,7 @@ import { dirname } from "node:path";
 import { CommandState } from "./CommandState.js";
 import { Footer } from "./Footer.js";
 import { addPackageCommand, removePackageCommand } from "./utils.js";
+import { PackageDetail } from "./PackageDetail.js";
 import { usePackageActions } from "./hooks/usePackageActions.js";
 import { useAllPackageLatest } from "./hooks/useAllPackageLatest.js";
 import { ProjectPackagesList } from "./ProjectPackagesList.js";
@@ -105,38 +106,11 @@ export const ProjectPackages = ({ project, onReload, onOpenInstallSearch }: Prop
           paddingX={1}
         >
           {pkg && (
-            <>
-              <Text bold>{pkg.id}</Text>
-              <Text>
-                Installed: <Text color="cyan">{pkg.version ?? "—"}</Text>
-              </Text>
-              {fetching && <Text dimColor>Fetching latest...</Text>}
-              {!fetching && latestData && (
-                <Text>
-                  Latest:{" "}
-                  <Text
-                    color={
-                      latestData.version !== pkg.version ? "yellow" : "green"
-                    }
-                  >
-                    {latestData.version}
-                  </Text>
-                </Text>
-              )}
-              {latestData?.deprecation && (
-                <Text color="yellow">
-                  ⚑ Deprecated:{" "}
-                  {latestData.deprecation.message ??
-                    latestData.deprecation.reasons?.join(", ")}
-                </Text>
-              )}
-              {(latestData?.vulnerabilities?.length ?? 0) > 0 && (
-                <Text color="red">
-                  ⚠ {latestData!.vulnerabilities!.length} vulnerabilit
-                  {latestData!.vulnerabilities!.length === 1 ? "y" : "ies"}
-                </Text>
-              )}
-            </>
+            <PackageDetail
+              pkg={pkg}
+              latestData={latestData}
+              fetching={fetching}
+            />
           )}
         </Box>
       </Box>
