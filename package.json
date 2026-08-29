@@ -1,18 +1,24 @@
 {
   "name": "tuget",
   "version": "1.0.0",
-  "description": "",
+  "description": "Terminal UI for .NET projects",
   "type": "module",
-  "main": "index.js",
+  "bin": {
+    "tuget": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "tsx src/index.ts",
+    "build": "tsc",
     "dev:sample": "TEST_PROJ_DIR=../sample-app tsx src/index.ts",
     "dev:sample-props": "TEST_PROJ_DIR=../sample-app-props tsx src/index.ts",
     "test": "vitest"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.33.0",
   "devDependencies": {
     "@types/node": "^26.2.0",
